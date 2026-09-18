@@ -1,0 +1,106 @@
+{
+  "$schema": "./schema.json",
+  "fleet_name": "InTEGr8or Homelab Fleet",
+  "updated_at": "2026-09-18T07:05:00Z",
+  "devices": [
+    {
+      "id": "nuc01",
+      "hostname": "NUC01",
+      "device_type": "nuc",
+      "architecture": "amd64",
+      "model": "Intel NUC 11 Performance (NUC11PAHi5)",
+      "chassis": "Tall (2.5-inch SATA bay available)",
+      "specs": {
+        "cpu": "11th Gen Intel Core i5-1135G7 @ 2.40GHz",
+        "cores": 4,
+        "threads": 8,
+        "max_turbo_mhz": 4200,
+        "ram_total_gb": 8,
+        "ram_slots_used": 1,
+        "ram_slots_total": 2,
+        "ram_details": "1x 8GB G.Skill Ripjaws DDR4-3200 (F4-3200C22-8GRS), 1 empty slot",
+        "storage": "250GB WD_BLACK SN770 PCIe 4.0 NVMe",
+        "sata_bay_occupied": false
+      },
+      "network": {
+        "mac_ethernet": "88:AE:DD:0C:CD:0C",
+        "nic_model": "Intel I225-V 2.5GbE",
+        "lan_ip": "10.0.0.145",
+        "tailscale_ip": "100.88.63.109",
+        "tailscale_fqdn": "nuc01.tail87cf32.ts.net",
+        "mdns_hostname": "NUC01.local"
+      },
+      "os": {
+        "distribution": "Debian GNU/Linux 13 (trixie)",
+        "kernel": "6.12.107+deb13-amd64",
+        "user": "mstouffer",
+        "sudo": "passwordless",
+        "ssh_key_auth": true
+      },
+      "status": "online",
+      "role": "primary-dev-box"
+    },
+    {
+      "id": "nuc02",
+      "hostname": "NUC02",
+      "device_type": "nuc",
+      "architecture": "amd64",
+      "model": "Intel NUC 13 Pro Slim (NUC13ANKi5000)",
+      "chassis": "Slim (Dual M.2)",
+      "specs": {
+        "cpu": "13th Gen Intel Core i5-1340P",
+        "cores": 12,
+        "threads": 16,
+        "max_turbo_mhz": 4600,
+        "ram_total_gb": 16,
+        "ram_slots_used": 1,
+        "ram_slots_total": 2,
+        "ram_details": "1x 16GB DDR4-3200 SODIMM, 1 empty slot",
+        "storage": "512GB TEAM TM8FP6512G PCIe NVMe SSD",
+        "sata_bay_occupied": false
+      },
+      "network": {
+        "mac_ethernet": "48:21:0B:5A:45:33",
+        "nic_model": "Intel I226-V 2.5GbE",
+        "lan_ip": "10.0.0.10",
+        "tailscale_ip": "100.99.32.117",
+        "tailscale_fqdn": "nuc02.tail87cf32.ts.net",
+        "mdns_hostname": "nuc02.local"
+      },
+      "os": {
+        "distribution": "Debian GNU/Linux 13 (trixie)",
+        "kernel": "6.12.94+deb13-amd64",
+        "user": "mstouffer",
+        "sudo": "passwordless",
+        "ssh_key_auth": true
+      },
+      "status": "online",
+      "role": "compute-node"
+    },
+    {
+      "id": "pi-template",
+      "hostname": "pi-node",
+      "device_type": "raspberry-pi",
+      "architecture": "arm64",
+      "model": "Raspberry Pi 5 Model B",
+      "specs": {
+        "cpu": "Broadcom BCM2712 Quad-core Cortex-A76 @ 2.4GHz",
+        "cores": 4,
+        "threads": 4,
+        "ram_total_gb": 8,
+        "storage": "NVMe via PCIe Base HAT"
+      },
+      "network": {
+        "nic_model": "Gigabit Ethernet (1.0 Gbps)",
+        "lan_ip": null,
+        "tailscale_ip": null
+      },
+      "os": {
+        "distribution": "Raspberry Pi OS / Debian",
+        "user": "mstouffer"
+      },
+      "status": "online",
+      "role": "iot-edge"
+    }
+  ]
+}
