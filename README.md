@@ -43,7 +43,7 @@ fleet-registry/
 1. Plug the Debian Installer USB into the new NUC and connect an Ethernet cable.
 2. Power on and tap `F10` for the boot menu. Select the USB drive.
 3. Select **`Automated Headless Install (Preseed)`**.
-4. The installer automatically wipes the NVMe drive, installs Debian headless, sets up user `mstouffer`, pre-injects your SSH keys, enables passwordless `sudo`, and reboots.
+4. The installer prompts once for a **hostname** (e.g. `nuc03`), then automatically wipes the NVMe drive, installs Debian headless, sets up user `mstouffer`, pre-injects your SSH keys, enables passwordless `sudo`, and reboots.
 
 ### Step 2: Connect via SSH
 From your Windows laptop or WSL:
