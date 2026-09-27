@@ -25,15 +25,24 @@ fleet-registry/
 │   ├── devices.json              # Source of truth: hardware specs, MACs, IPs, and roles
 │   └── schema.json               # JSON Schema for devices.json (`fr schema --write`)
 ├── src/fleet_registry/
-│   ├── core/                     # Business logic: models, inventory I/O, SSH, audit, reconcile
+│   ├── core/                     # Business logic: models, inventory I/O, SSH, audit, reconcile, tailscale
 │   ├── cli.py                    # `fr` command line (Typer + Rich)
 │   ├── tui/                      # `fr` dashboard (Textual)
 │   └── render.py                 # Rich tables shared by CLI and TUI (verkit theme)
+├── iac/                          # Infrastructure-as-Code & node provisioning scripts
+│   ├── sync-and-setup-nuc.sh     # Remote dotfile sync, mise, sudo, and toolchain provisioning
+│   ├── bootstrap-debian.sh       # Base system packages and runtime initialization
+│   └── distro-setup.sh           # Generic tool installer engine
+├── scripts/
+│   └── hoover_allowlist.py       # Cross-agent command harvester and Antigravity allowlist generator
 ├── tests/
 ├── usb/
 │   ├── preseed.cfg               # Master Debian unattended installer configuration
 │   └── grub-menu.cfg             # Fast boot entry configuration for USB installer
 └── docs/
+    ├── tailscale-fleet-guide.md  # Tailscale tailnet architecture, discovery, and ACLs
+    ├── antigravity.md            # Agent permission architecture and regex allowlist guide
+    ├── allowlist-ingestion.json  # Raw harvested command manifest
     ├── battery-backup-guide.md   # 19V Mini DC-to-DC UPS and USB-PD trigger guide
     └── 1password-headless-guide.md # Zero-secrets Windows Hello biometrics over SSH
 ```
@@ -69,6 +78,8 @@ mise trust && mise install && mise run setup   # once (re-run setup when deps ch
 | `fr audit nuc02` | Audit hardware/network/OS over SSH and diff against the inventory |
 | `fr audit --all --update` | Audit every addressable node and write measured changes |
 | `fr audit nuc03 --update --add` | Register a freshly installed node |
+| `fr discover [--all]` | Compare the Tailscale tailnet with the inventory (new / offline / registered) |
+| `fr discover --add [NODE...] [--user mstouffer]` | Audit new online Linux tailnet nodes and register them |
 | `fr audit nuc02 --json` | Raw audit data |
 | `fr config [--inventory PATH] [--ssh CLIENT]` | Show / set user settings |
 | `fr schema --write` | Regenerate `inventory/schema.json` |

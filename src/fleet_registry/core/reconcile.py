@@ -10,7 +10,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from fleet_registry.core.audit import AuditResult
+from fleet_registry.core.audit import AuditResult, device_type_for
 from fleet_registry.core.models import Device, Inventory
 
 
@@ -68,15 +68,31 @@ def apply(device: Device, changes: list[FieldChange]) -> None:
             setattr(device, field, change.new)
 
 
-def new_device(node: str, result: AuditResult) -> Device:
-    """Build an inventory entry for a node that isn't registered yet."""
-    device = Device(id=node, hostname=result.hostname, status="online")
+def new_device(node: str, result: AuditResult, ssh_host: str | None = None) -> Device:
+    """Build an inventory entry for a node that isn't registered yet.
+
+    Descriptive fields (model, device_type) are seeded from the audit here only;
+    ``reconcile`` never overwrites them on existing devices.
+    """
+    device = Device(id=node, hostname=result.hostname)
+    if ssh_host and ssh_host != node:
+        device.ssh_host = ssh_host
+    if dtype := device_type_for(result.hardware_model):
+        device.device_type = dtype
+    if result.hardware_model:
+        device.model = result.hardware_model
     apply(device, diff(device, result))
+    device.status = "online"
     return device
 
 
 def reconcile(
-    inventory: Inventory, node: str, result: AuditResult, *, add_missing: bool = False
+    inventory: Inventory,
+    node: str,
+    result: AuditResult,
+    *,
+    add_missing: bool = False,
+    ssh_host: str | None = None,
 ) -> tuple[Device | None, list[FieldChange]]:
     """Apply ``result`` to the matching device. Returns (device, changes applied).
 
@@ -86,7 +102,7 @@ def reconcile(
     if device is None:
         if not add_missing:
             return None, []
-        device = new_device(node, result)
+        device = new_device(node, result, ssh_host)
         inventory.devices.append(device)
         return device, [FieldChange(p, None, v) for p, v in measured_values(result).items()]
     changes = diff(device, result)

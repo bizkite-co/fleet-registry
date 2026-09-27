@@ -1,7 +1,7 @@
 {
   "$schema": "./schema.json",
   "fleet_name": "InTEGr8or Homelab Fleet",
-  "updated_at": "2026-09-18T07:05:00Z",
+  "updated_at": "2026-09-27T05:38:59Z",
   "devices": [
     {
       "id": "nuc01",
@@ -78,29 +78,56 @@
       "role": "compute-node"
     },
     {
-      "id": "pi-template",
-      "hostname": "pi-node",
+      "id": "cocli5x0",
+      "hostname": "cocli5x0",
+      "ssh_host": "mstouffer@cocli5x0",
       "device_type": "raspberry-pi",
       "architecture": "arm64",
-      "model": "Raspberry Pi 5 Model B",
+      "model": "Raspberry Pi 5 Model B Rev 1.1",
       "specs": {
-        "cpu": "Broadcom BCM2712 Quad-core Cortex-A76 @ 2.4GHz",
+        "cpu": "Cortex-A76",
         "cores": 4,
         "threads": 4,
-        "ram_total_gb": 8,
-        "storage": "NVMe via PCIe Base HAT"
+        "max_turbo_mhz": 2400,
+        "ram_total_gb": 8
       },
       "network": {
-        "nic_model": "Gigabit Ethernet (1.0 Gbps)",
-        "lan_ip": null,
-        "tailscale_ip": null
+        "mac_ethernet": "88:A2:9E:7B:29:05",
+        "lan_ip": "10.0.0.15",
+        "tailscale_ip": "100.125.159.65",
+        "tailscale_fqdn": "cocli5x0.tail87cf32.ts.net"
       },
       "os": {
-        "distribution": "Raspberry Pi OS / Debian",
-        "user": "mstouffer"
+        "distribution": "Debian GNU/Linux 13 (trixie)",
+        "kernel": "6.12.47+rpt-rpi-2712"
       },
-      "status": "online",
-      "role": "iot-edge"
+      "status": "online"
+    },
+    {
+      "id": "cocli5x1",
+      "hostname": "cocli5x1",
+      "ssh_host": "mstouffer@cocli5x1",
+      "device_type": "raspberry-pi",
+      "architecture": "arm64",
+      "model": "Raspberry Pi 5 Model B Rev 1.1",
+      "specs": {
+        "cpu": "Cortex-A76",
+        "cores": 4,
+        "threads": 4,
+        "max_turbo_mhz": 2400,
+        "ram_total_gb": 16
+      },
+      "network": {
+        "mac_ethernet": "88:A2:9E:84:8F:F5",
+        "lan_ip": "10.0.0.17",
+        "tailscale_ip": "100.114.149.107",
+        "tailscale_fqdn": "cocli5x1.tail87cf32.ts.net"
+      },
+      "os": {
+        "distribution": "Debian GNU/Linux 13 (trixie)",
+        "kernel": "6.12.62+rpt-rpi-2712"
+      },
+      "status": "online"
     }
   ]
 }

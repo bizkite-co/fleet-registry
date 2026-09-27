@@ -1,0 +1,10 @@
+[Unit]
+Description=Fleet Registry Network Watchdog & Auto-Recovery
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/fleet-network-watchdog.sh
+
+[Install]
+WantedBy=multi-user.target

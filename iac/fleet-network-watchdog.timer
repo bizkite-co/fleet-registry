@@ -1,0 +1,10 @@
+[Unit]
+Description=Fleet Network Watchdog Timer
+After=network.target
+
+[Timer]
+OnBootSec=90s
+OnUnitActiveSec=5m
+
+[Install]
+WantedBy=timers.target

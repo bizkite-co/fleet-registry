@@ -12,6 +12,7 @@ from verkit.theme import DEFAULT as theme
 from fleet_registry.core.audit import AuditResult
 from fleet_registry.core.models import Device
 from fleet_registry.core.reconcile import FieldChange
+from fleet_registry.core.tailscale import TailnetNode
 
 STATUS_STYLES = {"online": "green", "offline": "red", "pending": "yellow", "unboxed": "yellow"}
 
@@ -98,7 +99,7 @@ def device_detail(d: Device) -> RenderableType:
 
 
 def audit_detail(r: AuditResult) -> RenderableType:
-    slots = f"{_v(r.ram_slots_used)}/{_v(r.ram_slots_total)} slots"
+    slots = f" ({r.ram_slots_used}/{r.ram_slots_total} slots)" if r.ram_slots_total else ""
     summary = _kv(
         f"audit: {r.node} @ {r.collected_at}",
         {
@@ -106,7 +107,7 @@ def audit_detail(r: AuditResult) -> RenderableType:
             "cpu": r.cpu_model,
             "cores / threads": f"{_v(r.cores)} / {_v(r.threads)}",
             "max MHz": r.max_mhz,
-            "RAM": f"{_v(r.ram_total_gb)} GB ({slots})",
+            "RAM": f"{_v(r.ram_total_gb)} GB{slots}",
             "LAN": f"{_v(r.lan_ip)} on {_v(r.primary_interface)} ({_v(r.mac_ethernet)})",
             "tailscale": f"{_v(r.tailscale_ip)}  {_v(r.tailscale_fqdn)}",
             "os": r.os_pretty_name,
@@ -148,4 +149,27 @@ def changes_table(changes: list[FieldChange], title: str = "inventory changes") 
     t.add_column("Audit", style="green")
     for c in changes:
         t.add_row(c.path, _v(c.old), _v(c.new))
+    return t
+
+
+def tailnet_table(nodes: list[TailnetNode], inventory_ids: dict[str, str | None]) -> Table:
+    t = table("tailnet")
+    for col in ("Node", "Tailscale IP", "OS", "Online", "Inventory"):
+        t.add_column(col, no_wrap=True)
+    for n in nodes:
+        if n.online:
+            label = (
+                "this machine" if n.is_self else "this machine (WSL)" if n.is_local else "online"
+            )
+            online = Text(label, style="green")
+        else:
+            online = Text(f"last seen {(n.last_seen or '?')[:10]}", style="red")
+        dev_id = inventory_ids.get(n.name)
+        if dev_id:
+            where = Text(dev_id, style="bold")
+        elif n.is_fleet_candidate:
+            where = Text("new", style="yellow")
+        else:
+            where = Text("—", style="dim")
+        t.add_row(n.name, _v(n.ip), _v(n.os), online, where)
     return t

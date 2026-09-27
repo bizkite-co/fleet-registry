@@ -22,6 +22,8 @@ REMOTE_SCRIPT = r"""
 sec() { printf '\n@@@%s\n' "$1"; }
 sec hostname;   hostname
 sec arch;       dpkg --print-architecture 2>/dev/null || uname -m
+sec model;      tr -d '\0' </proc/device-tree/model 2>/dev/null \
+                || cat /sys/class/dmi/id/product_name 2>/dev/null
 sec lscpu;      lscpu -J 2>/dev/null
 sec meminfo;    grep MemTotal /proc/meminfo
 sec dmidecode;  sudo -n dmidecode -t memory 2>/dev/null
@@ -70,11 +72,21 @@ class Interface(BaseModel):
     state: str | None = None
 
 
+def device_type_for(hardware_model: str | None) -> str | None:
+    m = (hardware_model or "").lower()
+    if "raspberry pi" in m:
+        return "raspberry-pi"
+    if "nuc" in m:
+        return "nuc"
+    return None
+
+
 class AuditResult(BaseModel):
     node: str
     collected_at: str
     hostname: str | None = None
     architecture: str | None = None
+    hardware_model: str | None = None
     cpu_model: str | None = None
     cores: int | None = None
     threads: int | None = None
@@ -258,7 +270,8 @@ def parse_audit_output(node: str, text: str) -> AuditResult:
     if slots and dimms:
         ram_total: int | float | None = _whole(sum(d.size_gb or 0 for d in dimms))
     else:
-        if not slots:
+        # Boards without DMI tables (e.g. Raspberry Pi) have no slot data to read.
+        if not slots and device_type_for(s.get("model")) != "raspberry-pi":
             warnings.append("dmidecode needs passwordless sudo; RAM slot details missing")
         m = re.search(r"(\d+)\s*kB", s.get("meminfo", ""))
         ram_total = round(int(m.group(1)) * 1024 / _GIB) if m else None
@@ -275,6 +288,7 @@ def parse_audit_output(node: str, text: str) -> AuditResult:
         collected_at=datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
         hostname=s.get("hostname") or None,
         architecture=s.get("arch") or None,
+        hardware_model=s.get("model") or None,
         cpu_model=cpu.get("cpu_model"),
         cores=cpu.get("cores"),
         threads=cpu.get("threads"),
@@ -302,8 +316,8 @@ def parse_audit_output(node: str, text: str) -> AuditResult:
 async def audit_node(host: str, *, timeout: float = 60) -> AuditResult:
     result = await run_script(host, REMOTE_SCRIPT, timeout=timeout)
     if result.returncode == 255:
-        detail = result.stderr.strip().splitlines()[-1:] or ["connection failed"]
-        raise AuditError(f"{host}: ssh failed: {detail[0]}")
+        lines = [ln.strip() for ln in result.stderr.splitlines() if ln.strip()]
+        raise AuditError(f"{host}: ssh failed: {'; '.join(lines) or 'connection failed'}")
     return parse_audit_output(host, result.stdout)
 
 

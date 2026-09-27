@@ -19,7 +19,14 @@ from fleet_registry.core.audit import AuditResult, audit_many
 from fleet_registry.core.models import Inventory
 from fleet_registry.core.reconcile import diff, reconcile
 from fleet_registry.core.ssh import is_wsl, ping_many, ssh_executable
-from fleet_registry.render import audit_detail, changes_table, device_detail, fleet_table
+from fleet_registry.core.tailscale import match_device, tailnet_nodes
+from fleet_registry.render import (
+    audit_detail,
+    changes_table,
+    device_detail,
+    fleet_table,
+    tailnet_table,
+)
 
 console = Console()
 err = Console(stderr=True)
@@ -171,6 +178,70 @@ def audit(
         raise typer.Exit(1)
 
 
+@app.command()
+def discover(
+    ctx: typer.Context,
+    nodes: Annotated[
+        list[str] | None,
+        typer.Argument(help="Only consider these tailnet hostnames (default: all candidates)."),
+    ] = None,
+    add: Annotated[
+        bool, typer.Option("--add", help="Audit new online Linux nodes and register them.")
+    ] = False,
+    user: Annotated[
+        str | None,
+        typer.Option("--user", "-u", help="SSH user for nodes being added, e.g. mstouffer."),
+    ] = None,
+    show_all: Annotated[
+        bool, typer.Option("--all", "-a", help="Show every tailnet node, not just Linux ones.")
+    ] = False,
+) -> None:
+    """Compare the Tailscale tailnet with the inventory; optionally register new nodes."""
+    state = _state(ctx)
+    data = state.load()
+    tailnet = tailnet_nodes()
+    wanted = {n.lower() for n in nodes or []}
+    shown = [
+        n
+        for n in tailnet
+        if (show_all or n.is_fleet_candidate) and (not wanted or n.name in wanted)
+    ]
+    matches = {n.name: match_device(data, n) for n in shown}
+    console.print(tailnet_table(shown, {k: d.id if d else None for k, d in matches.items()}))
+
+    new = [n for n in shown if n.is_fleet_candidate and matches[n.name] is None]
+    if not add:
+        if new:
+            names = " ".join(n.name for n in new if n.online)
+            console.print()
+            console.print(f"[dim]Register with:[/dim] fr discover --add {names} \\[--user USER]")
+        return
+
+    offline = [n.name for n in new if not n.online]
+    if offline:
+        console.print(f"[yellow]Skipping offline: {', '.join(offline)}")
+    targets = {n.name: f"{user}@{n.name}" if user else n.name for n in new if n.online}
+    if not targets:
+        console.print("Nothing to add.")
+        return
+    with console.status(f"Auditing {', '.join(targets)} ..."):
+        by_host = asyncio.run(audit_many(list(targets.values())))
+
+    added = []
+    for node_id, host in targets.items():
+        result = by_host[host]
+        if not isinstance(result, AuditResult):
+            err.print(f"[red]{node_id}: not added: {result}[/red]")
+            continue
+        reconcile(data, node_id, result, add_missing=True, ssh_host=host)
+        added.append(node_id)
+    if added:
+        inv.save(data, state.path)
+        console.print(f"[green]Added {', '.join(added)} to {state.path}")
+    if len(added) < len(targets):
+        raise typer.Exit(1)
+
+
 @app.command("config")
 def config_cmd(
     ctx: typer.Context,
@@ -214,6 +285,41 @@ def schema(
         console.print(f"Wrote {path}")
     else:
         console.print_json(text)
+
+
+@app.command("allowlist")
+def allowlist_cmd(
+    ctx: typer.Context,
+    apply: Annotated[
+        bool,
+        typer.Option(
+            "--apply", "-a", help="Apply baked rules to ~/.gemini/antigravity-cli/settings.json."
+        ),
+    ] = False,
+) -> None:
+    """Generate or apply Antigravity CLI auto-approval rules for fleet nodes."""
+    from fleet_registry.core.allowlist import (
+        apply_allowlist,
+        generate_baked_rules,
+        get_fleet_hosts,
+    )
+
+    state = _state(ctx)
+    inventory = state.load()
+    hosts = get_fleet_hosts(inventory)
+    rules = generate_baked_rules(hosts)
+
+    console.print(
+        f"[bold green]Discovered {len(hosts)} fleet node identifiers/IPs:[/bold green] "
+        f"{', '.join(hosts)}"
+    )
+    console.print(f"[bold cyan]Generated {len(rules)} generalized allowlist rules:[/bold cyan]")
+    for r in rules:
+        console.print(f"  [bold]{r['category']}:[/bold]\n    [dim]{r['rule']}[/dim]")
+
+    if apply:
+        path = apply_allowlist([r["rule"] for r in rules])
+        console.print(f"\n[green]Applied rules to {path}[/green]")
 
 
 @app.command()

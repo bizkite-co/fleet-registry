@@ -6,6 +6,7 @@ import pytest
 from fleet_registry.core import inventory as inv
 from fleet_registry.core.audit import parse_audit_output
 from fleet_registry.core.config import resolve_inventory_path
+from fleet_registry.core.models import Inventory
 from fleet_registry.core.reconcile import diff, reconcile
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -31,9 +32,9 @@ def test_find_is_case_insensitive() -> None:
     assert device is not None and device.id == "nuc02"
 
 
-def test_template_devices_are_not_addressable() -> None:
-    data = inv.load(DEVICES)
-    assert [d.id for d in data.devices if d.is_addressable] == ["nuc01", "nuc02"]
+def test_devices_without_addresses_are_not_addressable() -> None:
+    data = Inventory.model_validate({"devices": [{"id": "template"}, {"id": "a", "ssh_host": "a"}]})
+    assert [d.id for d in data.devices if d.is_addressable] == ["a"]
 
 
 def test_reconcile_only_touches_measured_fields(tmp_path: Path) -> None:
@@ -54,9 +55,11 @@ def test_reconcile_only_touches_measured_fields(tmp_path: Path) -> None:
 def test_reconcile_adds_new_node() -> None:
     data = inv.load(DEVICES)
     result = parse_audit_output("nuc03", FIXTURE)
-    device, changes = reconcile(data, "nuc03", result, add_missing=True)
+    device, changes = reconcile(data, "nuc03", result, add_missing=True, ssh_host="me@nuc03")
     assert device is not None and data.find("nuc03") is device
     assert device.network.lan_ip == "10.0.0.10"
+    assert device.ssh_target == "me@nuc03"
+    assert device.status == "online"
     saved = json.loads(inv.dumps(data))
     assert saved["devices"][-1]["specs"]["threads"] == 16
 
