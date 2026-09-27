@@ -26,5 +26,6 @@ description = "Run ruff and mypy"
 run = ["uv run ruff check .", "uv run mypy src"]
 
 [tasks.release]
-description = "Bump version, tag, and push (triggers PyPI publish). Usage: mise run release [major|minor|patch]"
-run = "uv run verkit release {{arg(name='part', default='patch')}}"
+description = "Bump version, tag, and push (triggers PyPI publish)."
+usage = 'arg "[part]" default="patch" help="major, minor, or patch"'
+run = "uv run verkit release {{usage.part}}"
