@@ -1,0 +1,86 @@
+
+@@@hostname
+nuc02
+
+@@@arch
+amd64
+
+@@@lscpu
+{
+   "lscpu": [
+      {"field": "Architecture:", "data": "x86_64",
+         "children": [
+            {"field": "CPU op-mode(s):", "data": "32-bit, 64-bit"}
+         ]
+      },
+      {"field": "CPU(s):", "data": "16"},
+      {"field": "Vendor ID:", "data": "GenuineIntel",
+         "children": [
+            {"field": "Model name:", "data": "13th Gen Intel(R) Core(TM) i5-1340P",
+               "children": [
+                  {"field": "Thread(s) per core:", "data": "2"},
+                  {"field": "Core(s) per socket:", "data": "12"},
+                  {"field": "Socket(s):", "data": "1"},
+                  {"field": "CPU max MHz:", "data": "4600.0000"},
+                  {"field": "CPU min MHz:", "data": "400.0000"}
+               ]
+            }
+         ]
+      }
+   ]
+}
+
+@@@meminfo
+MemTotal:       16064952 kB
+
+@@@dmidecode
+# dmidecode 3.6
+Getting SMBIOS data from sysfs.
+SMBIOS 3.5.0 present.
+
+Handle 0x0010, DMI type 17, 92 bytes
+Memory Device
+	Array Handle: 0x000F
+	Total Width: 64 bits
+	Size: 16 GB
+	Form Factor: SODIMM
+	Locator: Controller0-ChannelA-DIMM0
+	Type: DDR4
+	Speed: 3200 MT/s
+	Manufacturer: Team Group Inc.
+	Part Number: TEAMGROUP-SD4-3200     
+	Configured Memory Speed: 3200 MT/s
+
+Handle 0x0011, DMI type 17, 92 bytes
+Memory Device
+	Array Handle: 0x000F
+	Size: No Module Installed
+	Locator: Controller1-ChannelA-DIMM0
+	Type: Unknown
+
+@@@lsblk
+{
+   "blockdevices": [
+      {"name": "nvme0n1", "size": 512110190592, "type": "disk", "model": "TEAM TM8FP6512G", "tran": "nvme"},
+      {"name": "zram0", "size": 4294967296, "type": "disk", "model": null, "tran": null}
+   ]
+}
+
+@@@ip_addr
+[{"ifindex":1,"ifname":"lo","link_type":"loopback","address":"00:00:00:00:00:00","operstate":"UNKNOWN","addr_info":[{"family":"inet","local":"127.0.0.1","prefixlen":8}]},{"ifindex":2,"ifname":"enp86s0","link_type":"ether","address":"48:21:0b:5a:45:33","operstate":"UP","addr_info":[{"family":"inet","local":"10.0.0.10","prefixlen":24},{"family":"inet6","local":"fe80::1","prefixlen":64}]},{"ifindex":3,"ifname":"tailscale0","link_type":"none","operstate":"UNKNOWN","addr_info":[{"family":"inet","local":"100.99.32.117","prefixlen":32}]}]
+
+@@@ip_route
+[{"dst":"1.1.1.1","gateway":"10.0.0.1","dev":"enp86s0","prefsrc":"10.0.0.10","flags":[],"uid":1000,"cache":[]}]
+
+@@@tailscale
+{"Version":"1.90.0","BackendState":"Running","Self":{"HostName":"nuc02","DNSName":"nuc02.tail87cf32.ts.net.","TailscaleIPs":["100.99.32.117","fd7a:115c:a1e0::1"]},"Peer":{}}
+
+@@@os_release
+PRETTY_NAME="Debian GNU/Linux 13 (trixie)"
+NAME="Debian GNU/Linux"
+VERSION_ID="13"
+
+@@@kernel
+6.12.94+deb13-amd64
+
+@@@end

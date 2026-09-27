@@ -1,0 +1,30 @@
+# Local dev: entering this folder activates a venv holding an editable install
+# of fleet-registry, so `fr` here always runs the working-tree code.
+# Everywhere else, `fr` comes from `uv tool install fleet-registry`.
+#
+# The venv is per-OS (.venv-windows / .venv-linux) so Windows and WSL can share
+# this checkout without clobbering each other's interpreters.
+
+[tools]
+python = "3.12"
+uv = "latest"
+
+[env]
+UV_PROJECT_ENVIRONMENT = "{{config_root}}/.venv-{{os()}}"
+_.python.venv = { path = "{{config_root}}/.venv-{{os()}}", create = true }
+
+[tasks.setup]
+description = "Sync the venv (editable install + dev deps)"
+run = "uv sync"
+
+[tasks.test]
+description = "Run the test suite"
+run = "uv run pytest"
+
+[tasks.lint]
+description = "Run ruff and mypy"
+run = ["uv run ruff check .", "uv run mypy src"]
+
+[tasks.release]
+description = "Bump version, tag, and push (triggers PyPI publish). Usage: mise run release [major|minor|patch]"
+run = "uv run verkit release {{arg(name='part', default='patch')}}"
