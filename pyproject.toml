@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "fleet-registry"
-version = "0.1.0"
+version = "0.1.1"
 description = "Inventory, audit, and provisioning CLI + TUI for a homelab fleet of Linux nodes"
 readme = "README.md"
 requires-python = ">=3.11"

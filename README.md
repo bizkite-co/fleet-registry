@@ -63,7 +63,7 @@ mise trust && mise install && mise run setup   # once (re-run setup when deps ch
 
 | Command | What it does |
 | :--- | :--- |
-| `fr` | Open the TUI dashboard (`a` audit, `A` audit all, `u` apply audit, `p` ping, `r` reload, `q` quit) |
+| `fr` | Open the TUI dashboard (`a` audit, `A` audit all, `u` apply audit, `p` ping, `r` reload, `q` quit; vim nav: `j`/`k` down/up, `h`/`l` table/detail pane, `g`/`G` top/bottom, `ctrl+d`/`ctrl+u` page) |
 | `fr list [--ping]` | Fleet table, optionally with SSH reachability |
 | `fr show nuc02` | One device's inventory record |
 | `fr audit nuc02` | Audit hardware/network/OS over SSH and diff against the inventory |

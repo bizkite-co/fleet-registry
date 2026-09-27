@@ -56,6 +56,15 @@ class FleetApp(App[None]):
         Binding("p", "ping_all", "Ping"),
         Binding("r", "reload", "Reload"),
         Binding("q", "quit", "Quit"),
+        # Vim-style navigation, shared with the other Textual TUIs.
+        Binding("j", "cursor_down", "Down", show=False),
+        Binding("k", "cursor_up", "Up", show=False),
+        Binding("h", "focus_table", "Focus table", show=False),
+        Binding("l", "focus_detail", "Focus detail", show=False),
+        Binding("g", "cursor_top", "Top", show=False),
+        Binding("G", "cursor_bottom", "Bottom", show=False),
+        Binding("ctrl+d", "page_down", "Page down", show=False),
+        Binding("ctrl+u", "page_up", "Page up", show=False),
     ]
 
     def __init__(self, inventory_path: Path) -> None:
@@ -89,6 +98,13 @@ class FleetApp(App[None]):
     @property
     def table(self) -> DataTable[RenderableType]:
         return self.query_one(DataTable)
+
+    @property
+    def detail_scroll(self) -> VerticalScroll:
+        return self.query_one("#detail-scroll", VerticalScroll)
+
+    def _table_focused(self) -> bool:
+        return self.focused is not self.detail_scroll
 
     def selected_id(self) -> str | None:
         t = self.table
@@ -139,6 +155,52 @@ class FleetApp(App[None]):
 
     def on_data_table_row_highlighted(self, _: DataTable.RowHighlighted) -> None:
         self.show_detail()
+
+    # ------------------------------------------------------------------ navigation
+    # Keys act on the focused pane: the device table moves its row cursor, the
+    # detail pane scrolls.
+
+    def action_cursor_down(self) -> None:
+        if self._table_focused():
+            self.table.action_cursor_down()
+        else:
+            self.detail_scroll.scroll_down()
+
+    def action_cursor_up(self) -> None:
+        if self._table_focused():
+            self.table.action_cursor_up()
+        else:
+            self.detail_scroll.scroll_up()
+
+    def action_cursor_top(self) -> None:
+        if self._table_focused():
+            self.table.move_cursor(row=0)
+        else:
+            self.detail_scroll.scroll_home()
+
+    def action_cursor_bottom(self) -> None:
+        if self._table_focused():
+            self.table.move_cursor(row=self.table.row_count - 1)
+        else:
+            self.detail_scroll.scroll_end()
+
+    def action_page_down(self) -> None:
+        if self._table_focused():
+            self.table.action_page_down()
+        else:
+            self.detail_scroll.scroll_page_down()
+
+    def action_page_up(self) -> None:
+        if self._table_focused():
+            self.table.action_page_up()
+        else:
+            self.detail_scroll.scroll_page_up()
+
+    def action_focus_table(self) -> None:
+        self.table.focus()
+
+    def action_focus_detail(self) -> None:
+        self.detail_scroll.focus()
 
     # ------------------------------------------------------------------ actions
 
