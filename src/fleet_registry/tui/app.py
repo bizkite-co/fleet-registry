@@ -59,6 +59,8 @@ class FleetApp(App[None]):
         # Vim-style navigation, shared with the other Textual TUIs.
         Binding("j", "cursor_down", "Down", show=False),
         Binding("k", "cursor_up", "Up", show=False),
+        Binding("J", "detail_down", "Scroll detail down", show=False),
+        Binding("K", "detail_up", "Scroll detail up", show=False),
         Binding("h", "focus_table", "Focus table", show=False),
         Binding("l", "focus_detail", "Focus detail", show=False),
         Binding("g", "cursor_top", "Top", show=False),
@@ -171,6 +173,12 @@ class FleetApp(App[None]):
             self.table.action_cursor_up()
         else:
             self.detail_scroll.scroll_up()
+
+    def action_detail_down(self) -> None:
+        self.detail_scroll.scroll_down(animate=False)
+
+    def action_detail_up(self) -> None:
+        self.detail_scroll.scroll_up(animate=False)
 
     def action_cursor_top(self) -> None:
         if self._table_focused():

@@ -2,7 +2,7 @@ import asyncio
 import json
 from pathlib import Path
 
-from textual.widgets import DataTable
+from textual.widgets import DataTable, Static
 
 from fleet_registry.tui.app import FleetApp
 
@@ -45,5 +45,17 @@ def test_tui_vim_navigation(tmp_path: Path) -> None:
             assert app.selected_id() == "c"
             await pilot.press("h")
             assert app.focused is app.table
+
+            # Shift+J / Shift+K scroll the detail pane without moving the table.
+            app.query_one("#detail", Static).update("\n".join(f"line {i}" for i in range(80)))
+            await pilot.pause()
+            before = app.detail_scroll.scroll_y
+            await pilot.press("J")
+            assert app.selected_id() == "c"
+            assert app.focused is app.table
+            assert app.detail_scroll.scroll_y == before + 1
+            await pilot.press("K")
+            assert app.selected_id() == "c"
+            assert app.detail_scroll.scroll_y == before
 
     asyncio.run(run())
